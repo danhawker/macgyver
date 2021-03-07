@@ -11,7 +11,16 @@ RUN microdnf install tar jq ethtool iputils iproute --nodocs ;\
 RUN curl -SL "$OC_DOWNLOAD" \
   | tar -zxv -C /usr/bin
 
-CMD ["/usr/bin/bash"]
+# Create a dir to hold any configs mounted within the container
+RUN mkdir -p /macgyver/etc
+
+WORKDIR /macgyver
+
+# Add macgyver.sh
+COPY macgyver.sh macgyver.sh
+
+#CMD ["/bin/bash"]
+ENTRYPOINT ["/macgyver/macgyver.sh"]
 
 LABEL \
         name="quay.io/danhawker/macgyver" \
