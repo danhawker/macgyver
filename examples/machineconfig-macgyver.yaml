@@ -1,0 +1,36 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    machineconfiguration.openshift.io/role: worker
+  name: 99-worker-macgyver
+spec:
+  config:
+    ignition:
+      version: 3.1.0
+    storage:
+      files:
+      - contents:
+          source: data:text/plain;charset=utf-8;base64,IyBHZW5lcmF0ZSB2YXJpb3VzIHZhcnMKCiMgTUFDR1lWRVJfTklDUyAtIGxpc3Qgb2YgTklDUyB0aGF0IE1hY0d5dmVyIHNob3VsZCBhcHBseSBjb25maWcgdG8KIyBNQUNHWVZFUl9OSUNTPSdldGgwIGVuczAgZW5wMnMwJwojwqBHcmFiIHVzaW5nIGBpcCBhYCBhbmQgZ3JlcCBmb3IgY29tbW9uIG5pYyBuYW1lcwojIE1BQ0dZVkVSX05JQ1M9YC91c3Ivc2Jpbi9pcCBhZGRyIHwgZ3JlcCAtZSBlbnMgLWUgZXRoIC1lIGVucCB8IGdyZXAgVVAgfCBhd2sgLUYgOiAne3ByaW50ICQyfScgfCBhd2sgJ3sgZ3N1YigvIC8sIiIpOyBwcmludCB9J2AKTUFDR1lWRVJfTklDUz0nZW5zM2YwIGVuczNmMScKCiMgVE9ETzogTm90IFlldCBJbXBsZW1lbnRlZAojIE1BQ0dZVkVSX0JPTkRTIC0gbGlzdCBvZiBib25kZWQgaW50ZXJmYWNlKHMpCk1BQ0dZVkVSX0JPTkRTPSdubS1ib25kJwoKIyBFVEhUT09MX09QVFMgLSBsaXN0IGV0aHRvb2wgdHdlYWtzIHNlcGFyYXRlZCBieSBhIHNlbWktY29sb24KIyBzY3JpcHQgdXNlcyBCQVNIIHBhcmFtZXRlciBzdWJzdGl0dXRpb24gb2YgdGhlIHN0cmluZyBgREVWSUNFYCAKIyB0byBhYnN0cmFjdCBhbmQgaXRlcmF0ZSBvdmVyIHRoZSBOSUNTIGRlZmluZWQvZGlzY292ZXJlZCBhYm92ZS4KCiMgRVRIVE9PTF9PUFRTPSItSyBERVZJQ0UgdHNvIG9uOyAtRyBERVZJQ0UgcnggNDA5NiB0eCA0MDk2IgojIEVUSFRPT0xfT1BUUz0iLUcgREVWSUNFIHJ4IDQwOTYgdHggNDA5NiIKRVRIVE9PTF9PUFRTPSItRyBERVZJQ0UgcnggODE5MiB0eCA4MTkyOy1LIERFVklDRSB0c28gb247LUsgREVWSUNFIGdybyBvbjstSyBERVZJQ0UgbHJvIG9uOy1DIERFVklDRSBhZGFwdGl2ZS1yeCBvbjstQyBERVZJQ0UgYWRhcHRpdmUtdHggb2ZmOy1MIERFVklDRSBjb21iaW5lZCAxIgoKIyBUT0RPOiBOb3QgWWV0IEltcGxlbWVudGVkCiMgSVBfQ01EUyAtIGxpc3Qgb2YgdHVuaW5nIHBhcmFtZXRlcnMgdG8gc2V0IHVzaW5nIHRoZSBgaXBgIGNvbW1hbmQgc2V0CklQX0NNRFM9Imxpbmsgc2V0IERFVklDRSB0eHF1ZXVlbGVuIDEwMDAwO2xpbmsgc2V0IERFVklDRSBtdHUgOTAwMCIKCiMgRU9G
+        filesystem: root
+        mode: 0420
+        path: /opt/macgyver/macgyver.conf
+    systemd:
+      units:
+      - contents: |
+          [Unit]
+          Description=Apply Network Interface Configs using MacGyver
+          After=network-online.target
+          Wants=network-online.target
+          [Service]
+          Type=oneshot
+          TimeoutStartSec=0
+          RemainAfterExit=true
+          ExecStartPre=/bin/podman pull quay.io/danhawker/macgyver:latest
+          ExecStart=/bin/podman run -v /opt/macgyver/macgyver.conf:/macgyver/macgyver.conf:Z quay.io/danhawker/macgyver
+          ExecStartPost=/bin/podman stop macgyver
+          ExecStop=/bin/podman rm macgyver
+          [Install]
+          WantedBy=multi-user.target
+        enabled: true
+        name: mco-macgyver.service
