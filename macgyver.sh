@@ -3,7 +3,7 @@
 #set -x
 
 #CONFIG="./macgyver.conf"
-CONFIG="/macgyver/etc/macgyver.conf"
+CONFIG="/macgyver/macgyver.conf"
 if [ ! -f ${CONFIG} ]; then
   echo "Config file ${CONFIG} does not exist"
   exit 2
